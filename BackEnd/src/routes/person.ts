@@ -8,6 +8,6 @@ router.use(express.json());
 router.get("/getAllPersons", controller.getAllPersons);
 router.get("/:username/cars" , controller.getAllCarsByPerson);
 router.put("/changeUsername/:username", controller.changeUsername);
-router.post("/addPerson", controller.addPerson);
+// router.post("/addPerson", controller.addPerson);
 
 export {router};

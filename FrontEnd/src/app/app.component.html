@@ -1,0 +1,17 @@
+<div class="relative">
+  <app-header></app-header>
+</div>
+
+<app-menu *ngIf="(authService.isAuthenticated$ | async) && (router.url !== '/login')"></app-menu>
+
+
+<div class="mx-64">
+  <div class="flex justify-center items-center h-full">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<!-- CIAO ZIO -->
+
+
+  

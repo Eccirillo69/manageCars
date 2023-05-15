@@ -1,0 +1,19 @@
+<div class="h-screen flex justify-center items-center bg-cover bg-center">
+    <div class="absolute top-0 left-0 mt-5 ml-5">
+      <svg viewBox="0 0 111 30" fill="#e50914" class="w-28" focusable="false">
+      </svg>
+    </div>
+    <div class="space-y-5">
+      <p class="text-black font-bold text-5xl flex flex-col items-center">
+        <span>Write the plates of the car to delete <br /></span>
+      </p>
+      <p class="text-black text-lg flex flex-col items-center">the plates has to be UPPER CASE</p>
+      <div class="flex flex-row items-center justify-center">
+        <input type="text" placeholder="Write here the car plate" class="p-4 focus:outline-none focus:ring-1 focus:ring-blue-300 w-3/4" [(ngModel)]="plates"/>
+        <button class="p-4 text-l font-semibold bg-blue-500 hover:bg-blue-700 text-white" (click)="deleteCarByPlates()">Delete Car</button>
+      </div>
+      <p *ngIf="successMessage" class="text-green-500 font-semibold">{{ successMessage }}</p>
+      <p *ngIf="errorMessage" class="text-red-500 font-semibold">{{ errorMessage }}</p>
+    </div>
+  </div>
+  

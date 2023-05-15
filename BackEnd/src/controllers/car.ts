@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export const deleteCarByPlates = async (req, res) => {
   try {
     const { plates } = req.params;
+    //CIAO COMMENTO GIT
 
     // Controllo dei dati in input
     if (!plates) {

@@ -9,6 +9,5 @@ function trimAllFields(obj: Record<string, any>): Record<string, any> {
   }, {} as Record<string, any>);
 }
 
-
 export { trimAllFields };
   

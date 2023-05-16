@@ -20,7 +20,6 @@ export const createPoint = async (req, res) => {
   }
 };
 
-
 export const deletePoint = async (req, res) => {
   const { id } = req.params;
 
@@ -40,9 +39,14 @@ export const deletePoint = async (req, res) => {
 
 export const getAllPoints = async (req, res) => {
   try {
-    const allPoints = await prisma.point.findMany();
+    const allPoints = await prisma.point.findMany({
+      include: {
+        person: true, // include the user object
+      },
+    });
     res.json(allPoints);
   } catch (error) {
     res.status(400).json({ error: 'There was an error retrieving the points.' });
   }
 };
+

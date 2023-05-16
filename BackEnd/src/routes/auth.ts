@@ -9,5 +9,4 @@ router.use(express.json());
 router.post("/registration", registration);
 router.post("/login", login);
 
-
 export {router};

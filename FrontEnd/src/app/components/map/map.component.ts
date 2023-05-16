@@ -45,60 +45,59 @@ export class MapComponent implements AfterViewInit {
 
     tiles.addTo(this.map);
 
-      //CREAZIONE
-    this.map.on('click', (e: any) => {
-      // e.latlng contiene le coordinate (latitudine e longitudine) del punto su cui l'utente ha cliccato
-      const marker = L.marker(e.latlng).addTo(this.map);
-
-      // Aggiungiamo il punto al backend
-      const point = {
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-        userId: this.authService.getUserId(),
-      };
-      this.markerService.addPoint(point.latitude, point.longitude, point.userId).subscribe({
-          next:(response) => {
-            console.log(response);
-          },
-          error:(error) => {
-            console.log(error);
-          }
-      });
-
-      const username = this.authService.getUsername();
-      // Opzionalmente, puoi anche aggiungere un popup al marker
-      marker.bindPopup(`Creato da: ${username}<br>LAT: ${e.latlng.lat}<br>LON: ${e.latlng.lng}`).openPopup();
-
-      // ELIMINA MARKER
-      marker.on('click', () => {
-        this.map.removeLayer(marker);
-      
-        // Trova l'ID del punto associato al marker
-        const pointId = this.markerPointIds.get(marker);
-        console.log(pointId)
-      
-        if (pointId !== undefined) {
-          console.log(pointId);
-          // Se abbiamo un pointId, lo rimuoviamo dal backend
-          this.markerService.removePoint(pointId).subscribe(response => {
-            console.log(response);
-          }, error => {
-            console.log(error);
-          });
-      
-          // Rimuovi la voce dall'oggetto Map
-          this.markerPointIds.delete(marker);
-        } else {
-          console.error('Could not find point ID for marker');
-        }
-      }); 
-    });
+    this.map.on('click', (e: any) => this.createPoint(e));
   }
 
-  constructor(
-    private markerService: MarkerService,
-    private authService: AuthService
-  ) {}
+  private createPoint(e: any): void {
+    const marker = L.marker(e.latlng).addTo(this.map);
+
+    // Aggiungiamo il punto al backend
+    const point = {
+      latitude: e.latlng.lat,
+      longitude: e.latlng.lng,
+      userId: this.authService.getUserId(),
+    };
+    this.markerService.addPoint(point.latitude, point.longitude, point.userId).subscribe({
+      next: (response: any) => {
+        // Aggiungi l'ID del punto all'oggetto Map
+        this.markerPointIds.set(marker, response.id);
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+
+    const username = this.authService.getUsername();
+    marker.bindPopup(`Creato da: ${username}<br>LAT: ${e.latlng.lat}<br>LON: ${e.latlng.lng}`).openPopup();
+
+    // Aggiungiamo un event listener per il click sul marker
+    this.assignDeleteHandler(marker);
+  }
+
+  private deletePoint(marker: L.Marker): void {
+    this.map.removeLayer(marker);
+
+    const pointId = this.markerPointIds.get(marker);
+    if (pointId !== undefined) {
+      // Se abbiamo un pointId, lo rimuoviamo dal backend
+      this.markerService.removePoint(pointId).subscribe(response => {
+        console.log(response);
+      }, error => {
+        console.log(error);
+      });
+
+      // Rimuovi la voce dall'oggetto Map
+      this.markerPointIds.delete(marker);
+    } else {
+      console.error('Could not find point ID for marker');
+    }
+  }
+
+  private assignDeleteHandler(marker: L.Marker): void {
+    marker.on('click', () => this.deletePoint(marker));
+  }
+
+  constructor(private markerService: MarkerService, private authService: AuthService) {}
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -110,9 +109,10 @@ export class MapComponent implements AfterViewInit {
         
         // Aggiungi l'ID del punto all'oggetto Map
         this.markerPointIds.set(marker, point.id);
+        this.assignDeleteHandler(marker);
   
         // Aggiungi un popup al marker
-        marker.bindPopup(`Creato da: ${point.creatorUsername}<br>LAT: ${point.latitude}<br>LON: ${point.longitude}`).openPopup();
+        marker.bindPopup(`Creato da: ${point.person.username}<br>LAT: ${point.latitude}<br>LON: ${point.longitude}`).openPopup();
       }
     });
   }

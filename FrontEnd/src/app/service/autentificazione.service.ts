@@ -78,7 +78,7 @@ export class AuthService {
       return '';
     }
     const payload = JSON.parse(atob(token.split('.')[1]));
-    console.log('decoded role:', payload.role); // aggiungi questo log
+    // console.log('decoded role:', payload.role); // aggiungi questo log
     return payload.role;
   }  
 

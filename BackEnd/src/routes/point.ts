@@ -10,5 +10,4 @@ router.post("/createPoint",[authMiddleware], createPoint);
 router.delete("/deletePoint/:id",[authMiddleware], deletePoint);
 router.get("/getAllPoints", [authMiddleware], getAllPoints);
 
-
 export {router};

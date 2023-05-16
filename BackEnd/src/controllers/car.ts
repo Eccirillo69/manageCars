@@ -1,22 +1,25 @@
 import { PrismaClient } from "@prisma/client";
+import { trimAllFields } from "./utils";
 
 const prisma = new PrismaClient();
 
 // DELETE CAR
 export const deleteCarByPlates = async (req, res) => {
   try {
-    const { plates } = req.params;
-    //CIAO COMMENTO GIT
+    const trimmedParams = trimAllFields(req.params);
+    const { plates } = trimmedParams;
 
+    const upperPlates = plates.toUppercase();
+    
     // Controllo dei dati in input
-    if (!plates) {
+    if (!upperPlates) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const car = await prisma.car
       .findFirst({
         where: {
-          plates: plates,
+          plates: upperPlates,
         },
       })
       .catch((error) => {
@@ -41,20 +44,25 @@ export const deleteCarByPlates = async (req, res) => {
   }
 };
 
-
 // CHANGE CAR BY PLATES
 export const changeCarPlatesByPlates = async (req, res) => {
   try {
-    const { plates } = req.params;
-    const { newPlates } = req.body;
+    const trimmedBody = trimAllFields(req.body);
+    const trimmedParams = trimAllFields(req.params);
+    const { plates } = trimmedParams;
+    const { newPlates } = trimmedBody;
 
+    const upperPlates = plates.toUpperCase();
+    const upperNewPlates = newPlates.toUpperCase();
+    
+    
     // Controllo dei dati in input
-    if (!plates || !newPlates) {
+    if (!upperPlates || !upperNewPlates) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Controllo per evitare che le nuove targhe siano uguali a quelle vecchie
-    if (plates === newPlates) {
+    if (upperPlates === upperNewPlates) {
       return res.status(400).json({ message: "New plates cannot be the same as the current plates" });
     }
 
@@ -68,12 +76,23 @@ export const changeCarPlatesByPlates = async (req, res) => {
       return res.status(404).json({ message: "Car not found" });
     }
 
+     // Controlla se esiste già un'altra persona con il nuovo username
+     const existingCar = await prisma.car.findFirst({
+      where: {
+        plates: upperNewPlates,
+      },
+    });
+
+    if (existingCar) {
+      return res.status(409).json({ message: "PLATES already in use" });
+    }
+
     const updatedCar = await prisma.car.update({
       where: {
         id: car.id,
       },
       data: {
-        plates: newPlates,
+        plates: upperNewPlates,
       },
     });
 
@@ -84,13 +103,16 @@ export const changeCarPlatesByPlates = async (req, res) => {
   }
 };
 
-
+//ADD CAR
 export const addCar = async (req, res) => {
   try {
-    const { model, plates, username } = req.body;
+    const trimmedBody = trimAllFields(req.body);
+    const { model, plates, username } = trimmedBody;
+
+    const upperPlates = plates.toUpperCase();
 
     // Controllo dei dati in input
-    if (!model || !plates || !username) {
+    if (!model || !upperPlates || !username) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -107,7 +129,7 @@ export const addCar = async (req, res) => {
     // Controllo se esiste già una macchina con le stesse targhe
     const existingCar = await prisma.car.findFirst({
       where: {
-        plates: plates,
+        plates: upperPlates,
       },
     });
 
@@ -118,7 +140,7 @@ export const addCar = async (req, res) => {
     const car = await prisma.car.create({
       data: {
         model: model,
-        plates: plates,
+        plates: upperPlates,
         person: {
           connect: {
             id: person.id, // Usa l'id della persona trovata tramite lo username
@@ -130,7 +152,7 @@ export const addCar = async (req, res) => {
     res.json(car);
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: "Errore Caricamento macchine" });
+    res.status(500).json({ message: "Errore Caricamento macchine" });
   }
 };
 

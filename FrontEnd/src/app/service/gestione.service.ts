@@ -12,11 +12,6 @@ export class GestioneService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
-  // private getAuthHeaders(): HttpHeaders {
-  //   const token = localStorage.getItem('token');
-  //   return new HttpHeaders().set('Authorization', 'Bearer ' + token);
-  // }
-
   getAllPersons(): Observable<any> {
     return this.http.get<any>(`${this.backEndUrl}/api/person/getAllPersons`, {
       headers: this.authService.getHttpHeaders(),
@@ -67,7 +62,3 @@ export class GestioneService {
   }
   
 }
-
-  // const headers = new HttpHeaders({
-  //   'Authorization': 'Bearer ' + token
-  // });

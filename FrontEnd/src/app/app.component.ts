@@ -17,11 +17,6 @@ export class AppComponent {
   }
 
   title = 'Gestione Macchine';
-
-  // @HostListener('window:beforeunload', ['$event'])
-  // onWindowClose(event: any): void {
-  //   this.authService.logout();
-  // }
 }
 
 

@@ -13,6 +13,10 @@ import { LoginComponent } from './components/login/login.component'; // Importa 
 import { RegistrationComponent } from './components/registration/registration.component'; // Importa RegistrationComponent
 import { AuthGuard } from './guards/auth.guard'; // Importa AuthGuard
 import { AdminGuard } from './guards/admin.guard';
+import { MapComponent } from './components/map/map.component';
+
+
+
 
 const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "/login" },
@@ -28,6 +32,11 @@ const routes: Routes = [
     path: "addPerson",
     component: AddPersonComponent,
     canActivate: [AuthGuard, AdminGuard], 
+  },
+  {
+    path: "map",
+    component: MapComponent,
+    canActivate: [AuthGuard],
   },
   {
     path: "addCar",

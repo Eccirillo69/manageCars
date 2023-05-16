@@ -11,9 +11,11 @@ model Person {
   id         Int      @id @default(autoincrement())
   username   String   @unique @db.VarChar(255)
   created_at DateTime @default(now())
-  password   String
   status     String
+  password   String
+  role       Role
   cars       Car[]
+  points     Point[]
 }
 
 model Car {
@@ -22,4 +24,17 @@ model Car {
   plates    String @db.VarChar(8)
   person_id Int
   person    Person @relation(fields: [person_id], references: [id])
+}
+
+model Point{
+  id        Int    @id @default(autoincrement())
+  latitude Float
+  longitude Float
+  person_id Int
+  person Person@relation(fields: [person_id], references: [id])
+}
+
+enum Role {
+  ADMIN
+  USER
 }

@@ -1,24 +1,24 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
+import { trimAllFields } from './utils';
 
-const prisma = new PrismaClient();
-
+const prisma = new PrismaClient()
 
 //GET ALL PERSONS
 export const getAllPersons = async (req, res) => {
   try {
     const persons = await prisma.person.findMany({
-        select: {
-          id: true,
-          username: true,
-          created_at: true,
-          status: true,
-          cars: true,
-        },
-      });
+      select: {
+        id: true,
+        username: true,
+        created_at: true,
+        status: true,
+        cars: true,
+      },
+    });
 
     const formattedPersons = persons.map((person) => ({
-        ...person,
-        created_at: person.created_at.toISOString(),
+      ...person,
+      created_at: person.created_at.toISOString(),
     }));
 
     res.json(formattedPersons);
@@ -28,15 +28,18 @@ export const getAllPersons = async (req, res) => {
   }
 };
 
-
 //GET ALL CAR BY PERSON
 export const getAllCarsByPerson = async (req, res) => {
   try {
-    const { username } = req.params;
+    const trimmedParams = trimAllFields(req.params);
+    const { username } = trimmedParams;
 
-    const person = await prisma.person.findUnique({
+    const person = await prisma.person.findFirst({
       where: {
-        username,
+        username: {
+          contains: username,
+          mode: "insensitive"
+        }
       },
       select: {
         cars: true,
@@ -57,8 +60,11 @@ export const getAllCarsByPerson = async (req, res) => {
 // CHANGE USERNAME
 export const changeUsername = async (req, res) => {
   try {
-    const { username } = req.params;
-    const { newUsername } = req.body;
+    const trimmedBody = trimAllFields(req.body);
+    const trimmedParams = trimAllFields(req.params);
+    const { username } = trimmedParams;
+    const { newUsername } = trimmedBody;
+
 
     // Controllo dei dati in input
     if (!newUsername || newUsername.trim() === '') {
@@ -67,7 +73,7 @@ export const changeUsername = async (req, res) => {
 
     const person = await prisma.person.findFirst({
       where: {
-        username,
+        username: username,
       },
     });
 
@@ -102,14 +108,14 @@ export const changeUsername = async (req, res) => {
   }
 };
 
-
 // ADD PERSON
 export const addPerson = async (req, res) => {
   try {
-    const { username, status } = req.body;
+    const trimmedBody = trimAllFields(req.body);
+    const { username, status, password, role } = trimmedBody;
 
     // Controllo dei dati in input
-    if (!username || !status) {
+    if (!username || !status || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -118,6 +124,12 @@ export const addPerson = async (req, res) => {
         .status(400)
         .json({ message: "Lo status deve essere 'poor' o 'rich'" });
     }
+
+    // if (role !== "ADMIN" && role !== "USER") {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Il ruolo deve essere 'ADMIN' o 'USER'" });
+    // }
 
     // Check if the person with the given username already exists
     const existingPerson = await prisma.person.findFirst({
@@ -133,6 +145,8 @@ export const addPerson = async (req, res) => {
     const person = await prisma.person.create({
       data: {
         username: username,
+        password: password, // aggiunto il campo password
+        role: "USER", // aggiunto il campo role
         status: status,
       },
     });
@@ -144,8 +158,33 @@ export const addPerson = async (req, res) => {
   }
 };
 
+export const searchPersons = async (req, res) => {
+  try {
+    const searchTerm = req.query.term;
 
+    const persons = await prisma.person.findMany({
+      where: {
+        username: {
+          contains: searchTerm,
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        created_at: true,
+        status: true,
+        cars: true,
+      },
+    });
 
+    const formattedPersons = persons.map((person) => ({
+      person,
+      created_at: person.created_at.toISOString(),
+    }));
 
-
-
+    res.json(formattedPersons);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

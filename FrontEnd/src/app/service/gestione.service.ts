@@ -60,5 +60,4 @@ export class GestioneService {
       headers: this.authService.getHttpHeaders()
     });
   }
-  
 }

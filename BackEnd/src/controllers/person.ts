@@ -178,7 +178,7 @@ export const searchPersons = async (req, res) => {
     });
 
     const formattedPersons = persons.map((person) => ({
-      person,
+      ...person,
       created_at: person.created_at.toISOString(),
     }));
 

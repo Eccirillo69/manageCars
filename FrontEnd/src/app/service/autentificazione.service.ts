@@ -101,9 +101,7 @@ export class AuthService {
     console.log('decoded user id:', payload.username); // aggiungi questo log
     return payload.username;
   }
-
-
-
+  
   // isTokenExpired(token: string): boolean {
   //   const payload = JSON.parse(atob(token.split('.')[1]));
   //   const expiry = payload.exp;

@@ -2,6 +2,7 @@ import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { MarkerService } from 'src/app/service/marker.service';
 import { AuthService } from 'src/app/service/autentificazione.service';
+import { Router } from '@angular/router';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -23,6 +24,7 @@ L.Marker.prototype.options.icon = iconDefault;
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
 })
+
 export class MapComponent implements AfterViewInit {
   private map: any;
   private markerPointIds = new Map<L.Marker, number>();
@@ -44,34 +46,59 @@ export class MapComponent implements AfterViewInit {
     );
 
     tiles.addTo(this.map);
-
     this.map.on('click', (e: any) => this.createPoint(e));
   }
 
-  private createPoint(e: any): void {
-    const marker = L.marker(e.latlng).addTo(this.map);
+  private username: string | null = null;
 
-    // Aggiungiamo il punto al backend
+  constructor(private markerService: MarkerService, private authService: AuthService, private router: Router) {}
+
+  private createAndConfigureMarker(latlng: L.LatLngExpression, username: string, id?: number): L.Marker {
+    const marker = L.marker(latlng).addTo(this.map);
+    
+    // Se abbiamo un id, lo aggiungiamo all'oggetto Map
+    if (id !== undefined) {
+      this.markerPointIds.set(marker, id);
+    }
+    
+    // Controlla se latlng è un oggetto o un array e crea il contenuto del popup di conseguenza
+    let lat, lng;
+    if (Array.isArray(latlng)) {
+      [lat, lng] = latlng;
+    } else {
+      lat = latlng.lat;
+      lng = latlng.lng;
+    }
+    
+    const popupContent = `Creato da: <a id="link-${username}" href="#">${username}</a>
+      <br>LAT: ${lat}
+      <br>LON: ${lng}`;
+    marker.bindPopup(popupContent);
+    
+    // Aggiungiamo gli event listener per il mouseover, mouseout e click
+    marker.on('mouseover', () => this.handleMouseOver(marker, username));
+    marker.on('mouseout', this.handleMouseOut);
+  marker.on('click', () => this.handleClick(marker));
+    
+    return marker;
+  }
+  
+  private createPoint(e: any): void {
     const point = {
       latitude: e.latlng.lat,
       longitude: e.latlng.lng,
       userId: this.authService.getUserId(),
     };
+  
     this.markerService.addPoint(point.latitude, point.longitude, point.userId).subscribe({
       next: (response: any) => {
-        // Aggiungi l'ID del punto all'oggetto Map
-        this.markerPointIds.set(marker, response.id);
+        const username = this.authService.getUsername();
+        this.createAndConfigureMarker(e.latlng, username, response.id);
       },
       error: (error) => {
         console.log(error);
       }
     });
-
-    const username = this.authService.getUsername();
-    marker.bindPopup(`Creato da: ${username}<br>LAT: ${e.latlng.lat}<br>LON: ${e.latlng.lng}`).openPopup();
-
-    // Aggiungiamo un event listener per il click sul marker
-    this.assignDeleteHandler(marker);
   }
 
   private deletePoint(marker: L.Marker): void {
@@ -93,29 +120,42 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  private assignDeleteHandler(marker: L.Marker): void {
-    marker.on('click', () => this.deletePoint(marker));
+  private handleMouseOver(marker: L.Marker, username: string): void {
+    marker.openPopup();
+
+    this.username = username;
+    const link = document.getElementById(`link-${username}`);
+    if (link) {
+      link.addEventListener('click', (e) => this.navigateToUser(e, username));
+    }
+  }
+  
+  private handleMouseOut(): void {
+    const link = document.getElementById(`link-${this.username}`);
+    if (link) {
+      link.removeEventListener('click', (e) => this.navigateToUser(e, this.username));
+    }
   }
 
-  constructor(private markerService: MarkerService, private authService: AuthService) {}
+  private navigateToUser(e: MouseEvent, username: string | null): void {
+    e.preventDefault();
+    if (username) {
+      this.router.navigate(['/getAllPersons'], { queryParams: { searchTerm: username } });
+    }
+  }
+  
+  private handleClick(marker: L.Marker): void {
+    this.deletePoint(marker);
+  }
 
   ngAfterViewInit(): void {
     this.initMap();
-    
+  
     // Carica tutti i punti dal backend dopo l'inizializzazione della mappa
     this.markerService.getAllPoints().subscribe((points: any) => {
       for (let point of points) {
-        const marker = L.marker([point.latitude, point.longitude]).addTo(this.map);
-        
-        // Aggiungi l'ID del punto all'oggetto Map
-        this.markerPointIds.set(marker, point.id);
-        this.assignDeleteHandler(marker);
-  
-        // Aggiungi un popup al marker
-        marker.bindPopup(`Creato da: ${point.person.username}<br>LAT: ${point.latitude}<br>LON: ${point.longitude}`).openPopup();
+        this.createAndConfigureMarker([point.latitude, point.longitude], point.person.username, point.id);
       }
     });
   }
-  
-  
 }

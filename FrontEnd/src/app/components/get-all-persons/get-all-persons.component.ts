@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router'; // <-- Importa questo
 import { GestioneService } from 'src/app/service/gestione.service';
 
 @Component({
@@ -12,10 +13,14 @@ export class GetAllPersonsComponent implements OnInit {
   isUsernameAscending: boolean = true;
   isDateAscending: boolean = true;
 
-  constructor(private gestioneService: GestioneService) {}
+  constructor(private gestioneService: GestioneService, private route: ActivatedRoute) {} // <-- Aggiungi 'route' al costruttore
 
   ngOnInit() {
-    this.getAllPersons();
+    // Aggiungi il seguente blocco di codice
+    this.route.queryParams.subscribe(params => {
+      this.searchTerm = params['searchTerm'] || '';
+      this.search();
+    });
   }
 
   getAllPersons() {
@@ -54,5 +59,6 @@ export class GetAllPersonsComponent implements OnInit {
     this.isDateAscending = !this.isDateAscending;
   }
 }
+
 
 

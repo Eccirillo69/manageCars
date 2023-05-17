@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from './service/autentificazione.service';
 import { Router } from '@angular/router';
 
@@ -7,13 +7,19 @@ import { Router } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   isAuthenticated: boolean = false;
 
   constructor(public authService: AuthService, public router: Router) {
     this.authService.isAuthenticated$.subscribe(
       (isAuthenticated) => this.isAuthenticated = isAuthenticated
     );
+  }
+  ngOnInit(): void {
+    this.authService.logout();
+    window.addEventListener('beforeunload', (event) => {
+      this.authService.logout();
+    });
   }
 
   title = 'Gestione Macchine';

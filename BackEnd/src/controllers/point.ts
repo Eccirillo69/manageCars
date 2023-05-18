@@ -63,8 +63,6 @@ export const getAllPoints = async (req, res) => {
       });
     }
 
-    console.log("All points:", JSON.stringify(allPoints, null, 2));
-
     res.json(allPoints);
   } catch (error) {
     res

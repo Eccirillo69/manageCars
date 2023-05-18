@@ -78,7 +78,7 @@ export class MapComponent implements AfterViewInit {
     // Aggiungiamo gli event listener per il mouseover, mouseout e click
     marker.on('mouseover', () => this.handleMouseOver(marker, username));
     marker.on('mouseout', this.handleMouseOut);
-  marker.on('click', () => this.handleClick(marker));
+    marker.on('click', () => this.handleClick(marker));
     
     return marker;
   }
@@ -137,6 +137,10 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
+  private handleClick(marker: L.Marker): void {
+    this.deletePoint(marker);
+  }
+
   private navigateToUser(e: MouseEvent, username: string | null): void {
     e.preventDefault();
     if (username) {
@@ -144,10 +148,6 @@ export class MapComponent implements AfterViewInit {
     }
   }
   
-  private handleClick(marker: L.Marker): void {
-    this.deletePoint(marker);
-  }
-
   ngAfterViewInit(): void {
     this.initMap();
   
